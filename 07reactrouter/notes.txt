@@ -1,0 +1,12 @@
+ What This Code Does
+<NavLink> is a component from React Router, used to navigate between routes.
+
+It receives a className as a function that takes isActive (boolean) — true if the current route matches the link.
+Dynamic Class Based on Active Route
+If this NavLink is the current route, it uses:
+
+text-orange-700 (highlight color)
+
+Otherwise, it shows:
+
+text-gray-700 (normal text)

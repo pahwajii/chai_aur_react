@@ -1,0 +1,30 @@
+React Password Generator – Hook Usage Notes
+1. useCallback Hook
+`useCallback(() => { ... }, [dependencies])`
+- Memoizes the function to avoid recreating it on every render.
+- Useful when passing functions to child components or dependencies in `useEffect`.
+- In your code: It ensures `passwordgenerator` only updates when `length`, `numallowed`, or `chrallowed` changes.
+2. useEffect Hook
+`useEffect(() => { ... }, [dependencies])`
+- Triggers side effects in response to state/prop changes.
+- Regenerates the password automatically when inputs change.
+- In your code: It listens to changes in `length`, `numallowed`, and `chrallowed`, and regenerates password accordingly.
+3. useRef Hook + Clipboard Copy
+- `useRef(null)` gives direct access to a DOM element (e.g., input field).
+- `.select()` highlights all text.
+- `.setSelectionRange(0, 5)` selects a range (helps on mobile).
+- `window.navigator.clipboard.writeText()` copies text to clipboard.
+- This approach is reliable across browsers when manually triggered (e.g., on button click).
+4. Why `window` Doesn’t Work in Next.js
+- In React (client-side), `window` is accessible by default.
+- In Next.js, initial rendering is server-side (Node.js), where `window` doesn’t exist.
+- To use browser-only features (like `window`, `document`, `navigator`), check first:
+`if (typeof window !== 'undefined') { ... }`
+5. Summary Table
+| Concept         | Hook Used     | Purpose                                                                 |
+|---------------- |---------------|-------------------------------------------------------------------------|
+| Memoize Function| `useCallback` | Prevent unnecessary re-creation of function on every render             |
+| Side Effect     | `useEffect`   | Auto-generate password when inputs change                               |
+| DOM Access      | `useRef`      | Directly reference the input element to select and copy text            |
+| Clipboard API   | `window.navigator.clipboard.writeText` | Copies password to system clipboard |
+| SSR Limitation  | `window`      | Not available in server-rendered frameworks like Next.js                |

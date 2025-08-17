@@ -1,0 +1,72 @@
+//components/inputbox/inputfield me onChange ke baare me
+1. Input Element Breakdown
+jsx
+Copy code
+<input
+  className="outline-none w-full bg-transparent py-1.5"
+  type="number"
+  placeholder="Amount"
+  disabled={amountdisable}
+  value={amount}
+  onChange={(e) => onAmountChange && onAmountChange(Number(e.target.value))}
+/>
+This is a controlled numeric input field in React with dynamic behavior and styling using Tailwind CSS.
+
+🔹 2. Props / Attributes Explained
+Attribute	Description
+className	Tailwind CSS classes for styling.
+type="number"	Restricts input to numeric values.
+placeholder	Shows "Amount" as placeholder text when input is empty.
+disabled={...}	Disables the input when amountdisable is true.
+value={amount}	Makes the input a controlled component, tied to the amount state.
+onChange={...}	Handles value changes. Calls onAmountChange() with the new number.
+
+🔹 3. Tailwind CSS Classes Used
+outline-none: removes default browser outline on focus
+
+w-full: makes the input take full width of its container
+
+bg-transparent: removes background so it inherits parent bg
+
+py-1.5: vertical padding for spacing
+
+🔹 4. onChange Logic Explained
+jsx
+Copy code
+onChange={(e) => onAmountChange && onAmountChange(Number(e.target.value))}
+e.target.value retrieves the string input
+
+Number(...) converts it to a number
+
+onAmountChange && ... is a safety check: only calls if onAmountChange is defined (avoids runtime errors)
+
+This makes the input reusable and safely handled across different components.
+
+🔹 5. Controlled Input Concept
+jsx
+Copy code
+value={amount}
+This means the input’s value is controlled by React state
+
+You must manage the amount variable using useState() in the parent component
+
+Example:
+
+jsx
+Copy code
+const [amount, setAmount] = useState(0);
+...
+<input value={amount} onChange={(e) => setAmount(Number(e.target.value))} />
+🔹 6. disabled={amountdisable}
+This conditionally disables the input field
+
+If amountdisable is true, the user can’t interact with the input
+
+Use case: disable field during loading, based on selection, etc.
+
+
+
+
+
+00000000
+        // https://open.er-api.com/v6/latest/${currency}

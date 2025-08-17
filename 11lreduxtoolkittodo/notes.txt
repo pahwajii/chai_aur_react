@@ -1,0 +1,168 @@
+import { createSlice, nanoid } from "@reduxjs/toolkit";
+
+const initialState = {
+    todos: [{id :1,text:"hello world"}],
+}
+
+export const todoSlice = createSlice({
+    name: "todo",// slice ka naam dena padega vo kuch bhi ho skta hai 
+    initialState,//har slice ka ek initial state banta hai kuch log initial state ko upar alag se define krte hai or kuch log yhin define krte hai 
+    reducers: {
+        addTodo: (state,action)=>{
+            const todo = {
+                id: nanoid(), // nanoid se unique id generate hoti hai
+                text: action.payload.text // payload se text milega jo humne add kiya hoga
+            }
+            state.todos.push(todo); // state.todos me todo ko push karna hai
+        },
+        // ye iska syntax hai jese use state vghera me hota hai iss bhi bas aese hi likha jayega reducers ko state action ke sath likha jata hai jiska access hume hamesha hota hai
+        // state batata hai jese initial state me abhi kya kya hai uska access degi chahe aage jaaek vo change ho 
+        // action me payload hota hai jese ki humne todo add krna hai to usme text or id dono hi honge , oid to lagegi to usse call krne ke liye value action.payload se milegi
+        removeTodo: (state, action) => {
+            state.todos = state.todos.filter(todo => todo.id !== action.payload.id); // filter se hum us todo ko nikaal denge jiska id action.payload.id ke barabar hoga
+        },
+        updateTodo: (state, action) => {
+            const todo = state.todos.find(todo => todo.id === action.payload.id);
+            if (todo) {
+                todo.text = action.payload.text; // agar todo milega to uska text update kar denge
+            }
+// updateTodo: (state, action) => {
+//     const index = state.todos.findIndex(todo => todo.id === action.payload.id);
+//     if (index !== -1) {
+//         state.todos[index].text = action.payload.text;
+//     }
+// }Using findIndex is often better when you want to avoid mutating references and instead directly target the array element’s index.                                              
+
+        }
+    }
+})
+Here are point-wise notes for your todoSlice.js:
+
+Imports:
+
+createSlice and nanoid are imported from @reduxjs/toolkit.
+createSlice helps create Redux slices easily.
+nanoid generates unique IDs for todos.
+Initial State:
+
+initialState is an object with a todos array.
+The array starts with one todo: {id: 1, text: "hello world"}.
+Creating the Slice:
+
+todoSlice is created using createSlice.
+The slice is named "todo".
+It uses the defined initialState.
+Reducers:
+
+addTodo:
+Adds a new todo to the todos array.
+Uses nanoid() for a unique ID.
+Gets the todo text from action.payload.text.
+removeTodo:
+Removes a todo by filtering out the one with the matching id from action.payload.id.
+updateTodo:
+Finds a todo by id and updates its text with action.payload.text.
+Uses find to locate the todo object.
+(Alternative using findIndex is commented for reference.)
+General Notes:
+
+Each reducer receives state (current state) and action (with payload).
+State is mutable inside reducers because Redux Toolkit uses Immer under the hood.
+The slice can be exported and used in the Redux store.
+
+//---------------------------------------------------------------------//
+steps to make reducerHere are the steps to make a reducer using Redux Toolkit:
+
+Import createSlice from @reduxjs/toolkit
+
+Define the initial state
+
+Create the slice using createSlice
+
+Give your slice a name.
+Pass the initial state.
+Define your reducer functions inside the reducers object.
+Export the actions
+
+Export the reducer
+
+Summary:
+
+Import createSlice
+Define initialState
+Use createSlice to create reducers
+Export actions and reducer
+
+//''''''''''''''''''''''''''''''''''''''''''''''''
+
+import React,{useState} from 'react'
+import { useDispatch } from 'react-redux'
+import { addTodo } from '../features/todo/todoSlice' // addTodo reducer ko import karna padega
+
+function AddTodo() {
+
+    const [input, setInput] = React.useState('')
+    const dispatch = useDispatch()
+
+    // dispatch ek reducer ko use krke store me data ko add karne ke liye use hota hai ya change karne ke liye
+    // jese ki humne todoSlice me addTodo reducer banaya hai to usse use karne ke liye dispatch se call karna padega
+    // or usme payload me text dena padega jese ki humne todo add krna hai to usme text or id dono hi honge , id to lagegi to usse call krne ke liye value action.payload se milegi
+    const addTodohandler = (e) => {
+        e.preventDefault()
+        dispatch(addTodo(input)) // dispatch se addTodo reducer ko call karna hai or input me jo text hai vo pass karna hai
+        setInput('') // input ko clear karna hai
+    }
+
+
+
+
+  return (
+    <form onSubmit={addTodohandler} className="space-x-3-mt-12">
+        <input
+            type="text"
+            className="bg-gray-800 rounded border border-gray-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-900 text-base outline-none text-gray-100 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+            placeholder="Enter a Todo..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}/>
+            <button
+            type="submit"
+            className="text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded text-lg">
+            Add Todo
+        </button>   
+    </form>
+  )
+}
+
+export default AddTodo
+//'''''''''''''''''''''''''''''''''''''''''''''''
+
+import React from 'react'
+import { useSelector,useDispatch } from 'react-redux'
+import { removeTodo } from '../features/todo/todoSlice' // addTodo reducer ko import karna padega
+
+// This component will display the list of todos
+// It will use useSelector to access the todos from the store
+// and map through them to display each todo item
+function Todos() {
+    const todos = useSelector((state) => state.todos) // useSelector se todos ko access karna hai ek array me hold kr rha hai vo sab todos ko
+    const dispatch = useDispatch() // useDispatch se dispatch ko access karna hai jisse hum action ko call kar sake
+
+  return (
+    <>
+        <div>todos</div>
+        {todos.map((todo) =>(
+            <li key={todo.id} >
+                {todo.text}
+                <button
+                    onClick={() => dispatch(removeTodo({ id: todo.id }))} // removeTodo reducer ko call karna hai or id pass karni hai
+                    className="text-red-500 ml-2">
+                    X
+                </button>
+                
+            </li>
+        )) }
+    </>
+  )
+}
+
+export default Todos

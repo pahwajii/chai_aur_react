@@ -1,0 +1,12 @@
+Breakdown:
+setTodos(...) – Updates the current list of todos.
+
+(prev) => [...] – You're using the previous state (prev) to ensure correct updates.
+
+{ id: Date.now(), ...todo } – You create a new object:
+
+id: Date.now() gives a unique timestamp-based ID.
+
+...todo spreads the contents of the input todo object (like title, description etc.).
+
+...prev – Adds all existing todos after the new one, so latest todos appear on top.

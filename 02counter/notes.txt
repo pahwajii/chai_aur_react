@@ -1,0 +1,58 @@
+1. Syntax Recap
+jsx
+Copy code
+const [stateVariable, setStateFunction] = useState(initialValue);
+useState() is a React (or Preact) hook used to manage local component state.
+
+Returns an array:
+
+stateVariable: the current state value
+
+setStateFunction: the function used to update it
+
+🔹 2. Your Code Example
+jsx
+Copy code
+const [count, setCount] = useState(0);
+count is the state variable initialized to 0.
+
+setCount is the function that can update the count.
+
+This could be used in future to track clicks, members, or any dynamic UI behavior.
+
+🔹 3. Common Use Cases for useState
+Toggle UI elements
+
+Store form inputs
+
+Manage counters or scores
+
+Trigger re-render on state change
+
+Control component conditions (like showing/hiding components)
+
+🔹 4. Example Usage (hypothetical)
+If you wanted to use count to track how many cards were rendered:
+
+jsx
+Copy code
+const [count, setCount] = useState(0);
+
+<Card onClick={() => setCount(count + 1)} />
+<p>You clicked on {count} cards.</p>
+This would increment the count whenever a card is clicked.
+
+🔹 5. Rules of useState
+Can only be used inside React/Preact function components
+
+Must be called at the top level (not inside loops or conditions)
+
+You can have multiple useState hooks in one component
+
+🔹 6. When to Use useState vs Props
+Feature	useState	props
+Owned by component	✅ Yes	❌ No
+Passed from parent	❌ No	✅ Yes
+Used to trigger re-render	✅ Yes	❌ No
+Used to receive static input	❌ No	✅ Yes
+
