@@ -15,6 +15,12 @@ function Select({
     id = {id}
     ref = {ref}
     className={`px-3 py-2 rounded-lg bg-white text-black outline-none focus:bg-gray-100 duration-250 border border-gray-300 w-full ${className}`}>
+    {/* options ek array hi milta hai ussually uske liye hame array map karna padta hai to isliye arrray lelo  */}
+        {options?.map((option)=>(
+            <option key={option} value = {option}>
+                {option}
+            </option>
+        ))}
 
     </select>
       
@@ -22,4 +28,4 @@ function Select({
   )
 }
 
-export default Select
+export default React.forwardRef(Select)
