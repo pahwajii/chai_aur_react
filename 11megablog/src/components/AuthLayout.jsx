@@ -1,7 +1,7 @@
 // mechanism hai ek ye jisse ye sab login signin u protect hots ghai to ham ye ek protected container banate hai
 
 import React,{useState,useEffect} from 'react'
-import {useSelector} from '/react-redux'
+import {useSelector} from 'react-redux'
 import {useNavigate} from 'react-router-dom'
 
 

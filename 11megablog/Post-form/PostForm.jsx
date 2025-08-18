@@ -1,7 +1,7 @@
 import React ,{useCallback} from 'react'
 import { useForm } from 'react-hook-form'
-import {Button,Input,Select,RTE} from '../index'
-import appwriteService from "../../appwrite/config"
+import {Button,Input,Select,RTE} from '../src/components/index' // Assuming these components are exported from index.js
+import appwriteService from "../src/appwrite/config"; // Adjust the import path as necessary
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 
