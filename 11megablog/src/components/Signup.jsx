@@ -1,5 +1,5 @@
 import React , {useState} from 'react'
-import authService, { Authservice } from '../appwrite/auth'
+import authService from '../appwrite/auth'
 import { Link, useNavigate } from 'react-router-dom'
 import { login } from '../store/authslice'
 import { Button , Input , Logo} from './index'
@@ -11,13 +11,13 @@ function Signup() {
     const dispatch = useDispatch();
     const{register,handleSubmit} = useForm();
 
-    const createaccount = async(data) => {
+    const createaccount = async (data) => {
         setError("")
         try {
-            const userData = await authService.createAccount(data)
-            if(userData){
-                userData = await authService.getcurrentUser()
-                if(userData) dispatch(login(userData));
+           const user = await authService.createAccount(data)
+        if (user) {
+        const currentUser = await authService.getCurrentUser()
+        if (currentUser) dispatch(login({ userdata: currentUser }))
                 navigate("/")
             }
             
@@ -46,7 +46,7 @@ function Signup() {
                 </p>
                 {error && <p className="text-red-600 mt-8 text-center">{error}</p>}
 
-                <form onSubmit={handleSubmit(create)}>
+                <form onSubmit={handleSubmit(createaccount)}>
                     <div className='space-y-5'>
                         <Input
                         label="Full Name: "

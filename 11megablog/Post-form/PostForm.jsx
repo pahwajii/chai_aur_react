@@ -1,6 +1,6 @@
 import React ,{useCallback} from 'react'
 import { useForm } from 'react-hook-form'
-import {Button,Input,Select,RTE} from '../src/components/index' // Assuming these components are exported from index.js
+import {Button,Input,Select,RTE} from '../src/components/index'
 import appwriteService from "../src/appwrite/config"; // Adjust the import path as necessary
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
@@ -17,34 +17,41 @@ function PostForm({post}) {
     })
 
     const navigate = useNavigate()
-    const userData = useSelector(state => state.user.userData)
+    const [previewUrl, setPreviewUrl] = React.useState('')
+    const userData = useSelector((state) => state.auth?.userdata);
     const submit = async(data)=>{
         if(post){
-            const file = data.image[0]?appwriteService.uploadFile(data.image[0]):null;
-            if(file){
-                appwriteService.deleteFile(post.featuredImage)
+            let newFeaturedImageId = post.featuredImage;
+            if (data.image && data.image[0]) {
+                const uploaded = await appwriteService.uploadFile(data.image[0]);
+                if (uploaded) {
+                    if (post.featuredImage) {
+                        try { await appwriteService.deleteFile(post.featuredImage) } catch {}
+                    }
+                    newFeaturedImageId = uploaded.$id;
+                }
             }
-            const dbPost = await appwriteService.updatePost(
-                post.$id,{
-                    ...data,
-                    featuredImage:file ? file.$id : undefined,
-
-                if(dbpost){
-                    navigate(`/post/${dbPost.$id}`)
-                }
-                }
-            )
+            const dbPost = await appwriteService.updatePost(post.$id, {
+                title: data.title,
+                content: data.content,
+                featuredImage: newFeaturedImageId,
+                status: data.status,
+            });
+            if(dbPost){
+                navigate(`/post/${dbPost.$id}`)
+            }
         }
         else{
             const file = await appwriteService.uploadFile(data.image[0]);
             if(file){
-                const fileId=file.$id
-                data.featuredImage = fileId
-                const dbPost = await appwriteService.createPost({
-                    ...data,
-                    userId :userData.$id,
-
-                })
+                const dbPost = await appwriteService.createPost(
+                    data.title,
+                    data.slug,
+                    data.content,
+                    file.$id,
+                    data.status,
+                    userData?.$id,
+                )
                 if(dbPost){
                     navigate(`/post/${dbPost.$id}`)
                 }
@@ -63,8 +70,9 @@ function PostForm({post}) {
             return value
             .trim()
             .toLowerCase()
-            .replace(/^[a-zA-Z\d\s]+/g,'-')
-            .replace(/\s/g,'-')
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g,'-')
+            .replace(/-+/g,'-')
 
         
         }
@@ -110,16 +118,19 @@ function PostForm({post}) {
                     type="file"
                     className="mb-4"
                     accept="image/png, image/jpg, image/jpeg, image/gif"
-                    {...register("image", { required: !post })}
+                    {...register("image", { required: !post, onChange: (e) => {
+                        const file = e?.target?.files?.[0]
+                        setPreviewUrl(file ? URL.createObjectURL(file) : '')
+                    } })}
                     // Create mode (post not present) → required: true (image mandatory)
 
 // Edit mode (post present) → required: false (kyunki tum purani image bhi rehne de sakte ho)
                 />
-                {post && (
+                {(previewUrl || post) && (
                     <div className="w-full mb-4">
                         <img
-                            src={appwriteService.getFilePreview(post.featuredImage)}
-                            alt={post.title}
+                            src={previewUrl || appwriteService.getFileUrl(post.featuredImage)}
+                            alt={post ? post.title : 'Selected image'}
                             className="rounded-lg"
                         />
                     </div>

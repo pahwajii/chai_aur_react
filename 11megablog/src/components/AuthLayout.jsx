@@ -6,7 +6,8 @@ import {useNavigate} from 'react-router-dom'
 
 
 
-function Protected(children,authentication = true ) {
+function Protected({ children, authentication = true })
+ {
     
     const navigate = useNavigate()
     const [loader ,setLoader]=useState(true)
@@ -37,7 +38,8 @@ function Protected(children,authentication = true ) {
     },[authStatus,navigate,authentication])
 
 
-  return loader ? <h1>Loading</h1> : {children}
+  return loader ? <h1>Loading</h1> : <>{children}</>;
+
 }
 
 export default Protected

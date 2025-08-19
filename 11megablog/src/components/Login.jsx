@@ -16,8 +16,8 @@ function Login() {
         try {
             const session = await authService.login(data)
             if(session){
-                const userData = await authService.getcurrentUser()
-                if(userData) dispatch(authLogin(userData));
+                const userData = await authService.getCurrentUser()
+                if(userData) dispatch(authLogin({ userdata: userData }));
                 navigate("/")//navigate se ham rogamamtically apne page ko kahin or lead kr skte hai 
                 // link se sirf click hone ke baad htoa hai
 

@@ -15,6 +15,18 @@ export class Service {
         this.bucket = new Storage(this.client);
     }
 
+    normalizeDocument(document) {
+        if (!document) return document;
+        return {
+            ...document,
+            title: document.TITLE ?? document.title,
+            content: document.CONTENT ?? document.content,
+            featuredImage: document.FEATUREDIMAGE ?? document.featuredImage,
+            status: document.STATUS ?? document.status,
+            userId: document.USERID ?? document.userId,
+        };
+    }
+
     async createPost(title,slug,content,featuredImage,status,userId) {
         try {
             return await this.databases.createDocument(
@@ -22,11 +34,11 @@ export class Service {
                 conf.appwriteCollectionId,
                 slug, // Use slug as the document ID
                 {
-                    title,
-                    content,
-                    featuredImage,
-                    status,
-                    userId
+                    TITLE: title,
+                    CONTENT: content,
+                    FEATUREDIMAGE: featuredImage,
+                    STATUS: status,
+                    USERID: userId
                 }
             )
 
@@ -41,10 +53,10 @@ export class Service {
                 conf.appwriteCollectionId,
                 slug, // Use slug as the document ID
                 {
-                    title,
-                    content,
-                    featuredImage,
-                    status
+                    TITLE: title,
+                    CONTENT: content,
+                    FEATUREDIMAGE: featuredImage,
+                    STATUS: status
                 }
             ) 
 
@@ -70,12 +82,13 @@ export class Service {
     }
     async getPost(slug){
         try {
-            return await this.databases.getDocument(
+            const doc = await this.databases.getDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionId,
                 slug // Use slug as the document ID
                 
             )
+            return this.normalizeDocument(doc)
             
         } catch (error) {
             throw error; // Handle errors appropriately
@@ -83,9 +96,9 @@ export class Service {
             
         }
     }
-    async getPosts(queries=[Query.equal("status", "active")]) {
+    async getPosts(queries=[Query.equal("STATUS", "active")]) {
         try {
-            return await this.databases.listDocuments(
+            const docs = await this.databases.listDocuments(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionId,
                 // [Query.equal("status", "published")] // Filter by status if needed yhnn bhi likh skte hai 
@@ -94,6 +107,10 @@ export class Service {
                 0 // Pagination offset  
 
             );
+            return {
+                ...docs,
+                documents: (docs.documents || []).map((d) => this.normalizeDocument(d)),
+            }
         } catch (error) {
             throw error; // Handle errors appropriately
             return false; // Return false if fetching fails
@@ -129,16 +146,40 @@ export class Service {
             return false; // Return false if deletion fails
         }
     }
-    getFilepreview(fileId) {
+    getFilepreview(fileId, { width, height, quality } = {}) {
         try {
-            return this.bucket.getFilePreview(
+            if (!fileId) return '';
+            const url = this.bucket.getFilePreview(
                 conf.appwriteBucketId,
-                fileId // The ID of the file to get preview
+                fileId,
+                width,
+                height,
+                quality
             );
+            return typeof url === 'string' ? url : (url && url.toString ? url.toString() : '');
         } catch (error) {
-            throw error;   
-            return false; // Return false if fetching preview fails
+            try {
+                const fallback = this.bucket.getFileView(conf.appwriteBucketId, fileId);
+                return typeof fallback === 'string' ? fallback : (fallback && fallback.toString ? fallback.toString() : '');
+            } catch (_) {
+                return '';
+            }
         }      
+    }
+
+    // Alias to avoid import casing mistakes in UI
+    getFilePreview(fileId, opts) {
+        return this.getFilepreview(fileId, opts)
+    }
+
+    getFileUrl(fileId) {
+        if (!fileId) return '';
+        try {
+            const url = this.bucket.getFileView(conf.appwriteBucketId, fileId)
+            return typeof url === 'string' ? url : (url && url.toString ? url.toString() : '')
+        } catch (_) {
+            return ''
+        }
     }
 
 }

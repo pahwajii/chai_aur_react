@@ -9,9 +9,9 @@ function EditPost() {
 
     useEffect(()=>{
         if(slug){
-            appwriteService.getPost(slug).then((post)=>{
-                if(post){
-                    setPosts(post)
+            appwriteService.getPost(slug).then((p)=>{
+                if(p){
+                    setPost(p)
                 }
             })
         }else {
