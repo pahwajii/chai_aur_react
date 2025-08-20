@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux'
 
 function PostForm({post}) {
 //hame kuch information chhiye to ab hame vo milegi use form se 
-    const{register, handleSubmit,watch,setValue,control,getValues}= useForm({
+    const{register, handleSubmit,watch,setValue,control,getValues, formState: { errors, isSubmitting }}= useForm({
         defaultValues:{
             title:post?.title ||'',
             slug : post?.slug||"",
@@ -19,42 +19,63 @@ function PostForm({post}) {
     const navigate = useNavigate()
     const [previewUrl, setPreviewUrl] = React.useState('')
     const userData = useSelector((state) => state.auth?.userdata);
+    
     const submit = async(data)=>{
-        if(post){
-            let newFeaturedImageId = post.featuredImage;
-            if (data.image && data.image[0]) {
-                const uploaded = await appwriteService.uploadFile(data.image[0]);
-                if (uploaded) {
-                    if (post.featuredImage) {
-                        try { await appwriteService.deleteFile(post.featuredImage) } catch {}
+        try {
+            // Validate content length for Appwrite string field limit
+            if (data.content && data.content.length > 255) {
+                alert('Content is too long. Please shorten your content or contact your administrator to increase the CONTENT field limit in Appwrite from 255 characters to unlimited.');
+                return;
+            }
+
+            if(post){
+                let newFeaturedImageId = post.featuredImage;
+                if (data.image && data.image[0]) {
+                    const uploaded = await appwriteService.uploadFile(data.image[0]);
+                    if (uploaded) {
+                        if (post.featuredImage) {
+                            try { await appwriteService.deleteFile(post.featuredImage) } catch {} 
+                        }
+                        newFeaturedImageId = uploaded.$id;
                     }
-                    newFeaturedImageId = uploaded.$id;
                 }
-            }
-            const dbPost = await appwriteService.updatePost(post.$id, {
-                title: data.title,
-                content: data.content,
-                featuredImage: newFeaturedImageId,
-                status: data.status,
-            });
-            if(dbPost){
-                navigate(`/post/${dbPost.$id}`)
-            }
-        }
-        else{
-            const file = await appwriteService.uploadFile(data.image[0]);
-            if(file){
-                const dbPost = await appwriteService.createPost(
-                    data.title,
-                    data.slug,
-                    data.content,
-                    file.$id,
-                    data.status,
-                    userData?.$id,
-                )
+                const dbPost = await appwriteService.updatePost(post.$id, {
+                    title: data.title,
+                    content: data.content,
+                    featuredImage: newFeaturedImageId,
+                    status: data.status,
+                });
                 if(dbPost){
                     navigate(`/post/${dbPost.$id}`)
                 }
+            }
+            else{
+                if (!data.image || !data.image[0]) {
+                    alert('Please select an image');
+                    return;
+                }
+                
+                const file = await appwriteService.uploadFile(data.image[0]);
+                if(file){
+                    const dbPost = await appwriteService.createPost(
+                        data.title,
+                        data.slug,
+                        data.content,
+                        file.$id,
+                        data.status,
+                        userData?.$id,
+                    )
+                    if(dbPost){
+                        navigate(`/post/${dbPost.$id}`)
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error submitting post:', error);
+            if (error.message && error.message.includes('255 chars')) {
+                alert('Content is too long. Please shorten your content or contact your administrator to increase the CONTENT field limit in Appwrite from 255 characters to unlimited.');
+            } else {
+                alert('Error creating post. Please try again.');
             }
         }
     }
@@ -90,59 +111,81 @@ function PostForm({post}) {
             }
         })
 
+        return () => subscription.unsubscribe();
     },[watch,slugTransform , setValue])    
 
   return (
-     <form onSubmit={handleSubmit(submit)} className="flex flex-wrap">
-            <div className="w-2/3 px-2">
+     <form onSubmit={handleSubmit(submit)} className="flex flex-wrap gap-8">
+            <div className="w-full lg:w-2/3">
                 <Input
                     label="Title :"
-                    placeholder="Title"
-                    className="mb-4"
-                    {...register("title", { required: true })}
+                    placeholder="Enter your post title"
+                    className="mb-6"
+                    {...register("title", { required: "Title is required" })}
                 />
+                {errors.title && <p className="text-red-500 text-sm mb-4">{errors.title.message}</p>}
+                
                 <Input
                     label="Slug :"
-                    placeholder="Slug"
-                    className="mb-4"
-                    {...register("slug", { required: true })}
+                    placeholder="Enter slug"
+                    className="mb-6"
+                    {...register("slug", { required: "Slug is required" })}
                     onInput={(e) => {
                         setValue("slug", slugTransform(e.currentTarget.value), { shouldValidate: true });
                     }}
                 />
+                {errors.slug && <p className="text-red-500 text-sm mb-4">{errors.slug.message}</p>}
+                
                 <RTE label="Content :" name="content" control={control} defaultValue={getValues("content")} />
             </div>
-            <div className="w-1/3 px-2">
+            <div className="w-full lg:w-1/3">
                 <Input
                     label="Featured Image :"
                     type="file"
-                    className="mb-4"
+                    className="mb-6"
                     accept="image/png, image/jpg, image/jpeg, image/gif"
-                    {...register("image", { required: !post, onChange: (e) => {
-                        const file = e?.target?.files?.[0]
-                        setPreviewUrl(file ? URL.createObjectURL(file) : '')
-                    } })}
-                    // Create mode (post not present) → required: true (image mandatory)
-
-// Edit mode (post present) → required: false (kyunki tum purani image bhi rehne de sakte ho)
+                    {...register("image", { 
+                        required: !post ? "Image is required" : false, 
+                        onChange: (e) => {
+                            const file = e?.target?.files?.[0]
+                            setPreviewUrl(file ? URL.createObjectURL(file) : '')
+                        } 
+                    })}
                 />
-                {(previewUrl || post) && (
-                    <div className="w-full mb-4">
+                {errors.image && <p className="text-red-500 text-sm mb-4">{errors.image.message}</p>}
+                
+                {(previewUrl || post?.featuredImage) && (
+                    <div className="w-full mb-6">
                         <img
                             src={previewUrl || appwriteService.getFileUrl(post.featuredImage)}
                             alt={post ? post.title : 'Selected image'}
-                            className="rounded-lg"
+                            className="rounded-2xl w-full h-32 object-contain shadow-lg border border-gray-200"
                         />
                     </div>
                 )}
+                
                 <Select
                     options={["active", "inactive"]}
                     label="Status"
-                    className="mb-4"
-                    {...register("status", { required: true })}
+                    className="mb-8"
+                    {...register("status", { required: "Status is required" })}
                 />
-                <Button type="submit" bgColor={post ? "bg-green-500" : undefined} className="w-full">
-                    {post ? "Update" : "Submit"}
+                {errors.status && <p className="text-red-500 text-sm mb-4">{errors.status.message}</p>}
+                
+                <Button 
+                    type="submit" 
+                    bgColor={post ? "bg-green-500 hover:bg-green-600" : "bg-primary hover:bg-secondary"} 
+                    className="w-full py-4 text-lg font-semibold rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500"
+                    disabled={isSubmitting}
+                >
+                    {isSubmitting ? (
+                        <div className="flex items-center justify-center">
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                            {post ? "Updating..." : "Creating..."}
+                        </div>
+                    ) : (
+                        post ? "Update Post" : "Create Post"
+                    )}
                 </Button>
             </div>
         </form>

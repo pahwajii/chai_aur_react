@@ -8,14 +8,18 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import Home from './pages/Home.jsx'
 import { Protected, Login } from './components/index'
 
-
 import AddPost from "./pages/AddPost";
 import Signup from './pages/Signup'
 import EditPost from "./pages/EditPost";
-
 import Post from "./pages/Post";
-
 import AllPosts from "./pages/AllPost";
+import Features from "./pages/Features";
+import Pricing from "./pages/Pricing";
+import Contact from "./pages/Contact";
+import Help from "./pages/Help";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import Cookies from "./pages/Cookies";
 
 const router = createBrowserRouter([
   {
@@ -72,6 +76,34 @@ const router = createBrowserRouter([
         {
             path: "/post/:slug",
             element: <Post />,
+        },
+        {
+            path: "/features",
+            element: <Features />,
+        },
+        {
+            path: "/pricing",
+            element: <Pricing />,
+        },
+        {
+            path: "/contact",
+            element: <Contact />,
+        },
+        {
+            path: "/help",
+            element: <Help />,
+        },
+        {
+            path: "/terms",
+            element: <Terms />,
+        },
+        {
+            path: "/privacy",
+            element: <Privacy />,
+        },
+        {
+            path: "/cookies",
+            element: <Cookies />,
         },
     ],
 },
